@@ -5,3 +5,4 @@ d:\Учёба\МГ\Terminator\Model\obj\Debug\Model.Properties.Resources.resourc
 d:\Учёба\МГ\Terminator\Model\obj\Debug\Terminator.csproj.GenerateResource.Cache
 d:\Учёба\МГ\Terminator\Model\obj\Debug\Model.exe
 d:\Учёба\МГ\Terminator\Model\obj\Debug\Model.pdb
+d:\Учёба\МГ\Terminator\Model\obj\Debug\Terminator.csprojResolveAssemblyReference.cache

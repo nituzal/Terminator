@@ -24,7 +24,7 @@ namespace Terminator
         {
             InitializeComponent();
             AnT.InitializeContexts();
-            this.MouseWheel += new MouseEventHandler(AnT_MouseWheel);
+            MouseWheel += AnT_MouseWheel;
         }
 
         double a = 0, b = 0, c = -3, d = 0, zoom = 0.1, delta = 0;
@@ -32,7 +32,9 @@ namespace Terminator
         bool Wire = false;
 
 
-        private float angleArm = 0, stepAngleArm = 1;
+        private float angleArm = 0, stepAngleArm = 1, angleForearmLeft, angleForearmRight, angleForearm2 = 0, step2 = 0.28f;
+        private bool isLeftArm = true;
+
 
         ModelLoader Model = null;
 
@@ -215,29 +217,48 @@ namespace Terminator
             Glut.glutWireCylinder(0.15f, 0.3f, 25, 0);
             Gl.glPopMatrix();
 
+            Gl.glPushMatrix();
+
             //left forearm
+
             Gl.glPushMatrix();
             Gl.glTranslatef(0f, 0f, -1.15f);
-            Gl.glRotatef(90f, 1, 0, 0);
+            Gl.glRotatef(-30, 0, 1, 0);
+            Gl.glPushMatrix();
+            Gl.glRotatef(-160f + angleForearmLeft , 1, 0, 0);
             Glut.glutWireCylinder(0.15f, 1.3f, 10, 0);
             Gl.glPopMatrix();
+            Gl.glPopMatrix();
+
+            var deX = 1.3 * Math.Sin(ConvertToRadians(30)) * Math.Cos(ConvertToRadians(20 + angleForearmLeft));
+            var deY = 1.3*Math.Sin(ConvertToRadians(20 + angleForearmLeft)) + 0.1f;
+            var deZ = 1.3 * Math.Cos(ConvertToRadians(30)) * Math.Cos(ConvertToRadians(20 + angleForearmLeft));
+
+            Gl.glTranslatef((float)deX, (float)deY, -1.15f - (float)deZ);
 
             //left elbow
             Gl.glPushMatrix();
-            Gl.glTranslatef(0f, -1.3f, -1.3f);
+            Gl.glTranslatef(0f, -0.1f, -0.1f);
             Glut.glutWireCylinder(0.15f, 0.3f, 10, 0);
             Gl.glPopMatrix();
 
+            Gl.glTranslatef(0f, -0.15f, 0f);
+
             //left arm
             Gl.glPushMatrix();
-            Gl.glTranslatef(0f, -1.3f, -1.15f);
-            Gl.glRotatef(90f, 1, 0, 0);
-            Glut.glutWireCylinder(0.15f, 1f, 10, 0);
+            //Gl.glTranslatef(0f, -1.3f, -1.15f);
+            Gl.glRotatef(-20f, 1, 0, 0);
+            Gl.glRotatef(10f, 0, 1, 0);
+            Glut.glutWireCylinder(0.15f, 1.3f, 10, 0);
             Gl.glPopMatrix();
+
+            Gl.glTranslatef(0.3f, 0.4f, 1.35f);
 
             //left fingers
             Gl.glPushMatrix();
-            Gl.glTranslatef(0f, -2.45f, -1.05f);
+            Gl.glRotatef(72f, 1, 0, 0);
+            Gl.glRotatef(0f, 0, 1, 0);
+            Gl.glRotatef(-40f, 0, 0, 1);
             Gl.glScaled(0.04, 0.5, 0.04);
             Glut.glutWireCube(1.0);
             Gl.glTranslatef(0f, 0f, -1.12f);
@@ -250,37 +271,53 @@ namespace Terminator
             Glut.glutWireCube(1.0);
             Gl.glPopMatrix();
 
+            Gl.glPopMatrix();
+
             //right shoulder
             Gl.glPushMatrix();
             Gl.glTranslatef(0f, 0f, 1f);
             Glut.glutWireCylinder(0.15f, 0.3f, 25, 0);
             Gl.glPopMatrix();
 
+            Gl.glPushMatrix();
+
             //right forearm
             Gl.glPushMatrix();
             Gl.glTranslatef(0f, 0f, 1.15f);
-            Gl.glRotatef(90f, 1, 0, 0);
+            Gl.glRotatef(30, 0, 1, 0);
+            Gl.glPushMatrix();
+            Gl.glRotatef(-20f - angleForearmRight, 1, 0, 0);
             Glut.glutWireCylinder(0.15f, 1.3f, 10, 0);
             Gl.glPopMatrix();
+            Gl.glPopMatrix();
+
+            var deXright = 1.3 * Math.Sin(ConvertToRadians(30)) * Math.Cos(ConvertToRadians(20 + angleForearmRight));
+            var deYright = 1.3 * Math.Sin(ConvertToRadians(20 + angleForearmRight)) + 0.1f;
+            var deZright = 1.3 * Math.Cos(ConvertToRadians(30)) * Math.Cos(ConvertToRadians(20 + angleForearmRight));
+
+            Gl.glTranslatef((float)deXright, (float)deYright, 1f + (float)deZright);
 
             //right elbow
             Gl.glPushMatrix();
-            Gl.glTranslatef(0f, -1.3f, 1f);
+            Gl.glTranslatef(0f, -0.1f, -0.1f);
             Glut.glutWireCylinder(0.15f, 0.3f, 10, 0);
             Gl.glPopMatrix();
 
-            Gl.glTranslatef(0f, -1.3f, 1.15f);
+            Gl.glTranslatef(0f, -0.15f, 0.1f);
+
             //right arm
             Gl.glPushMatrix();
-            Gl.glRotatef(90f, 1, 0, 0);
-            Gl.glRotatef(angleArm, 0, 1, 0);
-            Glut.glutWireCylinder(0.15f, 1f, 10, 0);
+            Gl.glRotatef(20f, 1, 0, 0);
+            Gl.glRotatef(170f, 0, 1, 0);
+            Glut.glutWireCylinder(0.15f, 1.3f, 10, 0);
             Gl.glPopMatrix();
 
+            Gl.glTranslatef(0.3f, 0.4f, -1.3f);
             //right fingers
             Gl.glPushMatrix();
-            Gl.glRotatef(angleArm, 0, 0, 1);
-            Gl.glTranslatef(0f, -1.15f, -0.1f);
+            Gl.glRotatef(-78f, 1, 0, 0);
+            Gl.glRotatef(0f, 0, 1, 0);
+            Gl.glRotatef(-40f, 0, 0, 1);
             Gl.glScaled(0.04, 0.5, 0.04);
             Glut.glutWireCube(1.0);
             Gl.glTranslatef(0f, 0f, 1.12f);
@@ -293,7 +330,7 @@ namespace Terminator
             Glut.glutWireCube(1.0);
             Gl.glPopMatrix();
 
-            
+            Gl.glPopMatrix();
         }
 
         private void DrawSolidTorso()
@@ -424,12 +461,14 @@ namespace Terminator
             Gl.glPushMatrix();
             Gl.glMultMatrixf(shadowMatrix);
             Gl.glColor3f(0, 0, 0);
-            Gl.glTranslated(0, 5, 0);
+            Gl.glTranslated(0, 2, 0);
+            //Gl.glRotated(-70, 0, 0, 1);
             DrawHead();
             Gl.glPopMatrix();
 
             Gl.glColor3f(255f, 0f, 0f);
-            Gl.glTranslated(0, 5, 0);
+            Gl.glTranslated(0, 2, 0);
+            //Gl.glRotated(-70, 0, 0, 1);
             DrawHead();
 
             Gl.glFlush();
@@ -465,13 +504,28 @@ namespace Terminator
         private void RenderTimer_Tick(object sender, EventArgs e)
         {
             Draw();
-            //b += 0.01;
-            //delta += 0.01;
-            if (angleArm > 99 || angleArm < 0)
-                stepAngleArm = -stepAngleArm;
-            angleArm += stepAngleArm;
 
-            label11.Text = angleArm.ToString();
+            if (angleForearmLeft > 30 || angleForearmRight> 30)
+                stepAngleArm = -stepAngleArm;
+
+            if (angleForearmRight < 0 && !isLeftArm)
+            {
+                stepAngleArm = -stepAngleArm;
+                angleForearmLeft = 0;
+                isLeftArm = true;
+            }
+
+            if (angleForearmLeft < 0 && isLeftArm)
+            {
+                stepAngleArm = -stepAngleArm;
+                angleForearmRight = 0;
+                isLeftArm = false;
+            }
+            if (isLeftArm)
+                angleForearmLeft += stepAngleArm;
+            else angleForearmRight += stepAngleArm;
+
+            label11.Text = angleForearmLeft.ToString();
         }
 
         private void AnT_MouseWheel(object sender, MouseEventArgs e)
@@ -505,7 +559,7 @@ namespace Terminator
         private void AnT_MouseUp(object sender, MouseEventArgs e)
         {
 
-           // label11.Text = "X = " + prev_x + " Y = " + prev_y;
+            // label11.Text = "X = " + prev_x + " Y = " + prev_y;
         }
 
         private float[] CreateShadowMatrix(float[] planeNormal, float[] lightPos)
@@ -540,5 +594,9 @@ namespace Terminator
             return matrix;
         }
 
+        public double ConvertToRadians(double angle)
+        {
+            return (Math.PI / 180) * angle;
+        }
     }
 }
