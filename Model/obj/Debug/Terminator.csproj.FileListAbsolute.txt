@@ -1,0 +1,7 @@
+d:\Учёба\МГ\Terminator\Model\bin\Debug\Model.exe
+d:\Учёба\МГ\Terminator\Model\bin\Debug\Model.pdb
+d:\Учёба\МГ\Terminator\Model\obj\Debug\Terminator.SceneForm.resources
+d:\Учёба\МГ\Terminator\Model\obj\Debug\Model.Properties.Resources.resources
+d:\Учёба\МГ\Terminator\Model\obj\Debug\Terminator.csproj.GenerateResource.Cache
+d:\Учёба\МГ\Terminator\Model\obj\Debug\Model.exe
+d:\Учёба\МГ\Terminator\Model\obj\Debug\Model.pdb

@@ -1,0 +1,17 @@
+d:\Учёба\МГ\asd\Model\bin\Debug\Model.exe
+d:\Учёба\МГ\asd\Model\bin\Debug\Model.pdb
+d:\Учёба\МГ\asd\Model\obj\Debug\Model.csprojResolveAssemblyReference.cache
+d:\Учёба\МГ\asd\Model\obj\Debug\Model.Form1.resources
+d:\Учёба\МГ\asd\Model\obj\Debug\Model.Properties.Resources.resources
+d:\Учёба\МГ\asd\Model\obj\Debug\Model.csproj.GenerateResource.Cache
+d:\Учёба\МГ\asd\Model\obj\Debug\Model.exe
+d:\Учёба\МГ\asd\Model\obj\Debug\Model.pdb
+d:\Учёба\МГ\asda\Model\bin\Debug\Model.exe
+d:\Учёба\МГ\asda\Model\bin\Debug\Model.pdb
+d:\Учёба\МГ\asda\Model\obj\Debug\Model.Form1.resources
+d:\Учёба\МГ\asda\Model\obj\Debug\Model.Properties.Resources.resources
+d:\Учёба\МГ\asda\Model\obj\Debug\Model.csproj.GenerateResource.Cache
+d:\Учёба\МГ\asda\Model\obj\Debug\Model.exe
+d:\Учёба\МГ\asda\Model\obj\Debug\Model.pdb
+d:\Учёба\МГ\Terminator\Model\obj\Debug\Model.exe
+d:\Учёба\МГ\Terminator\Model\obj\Debug\Model.pdb
