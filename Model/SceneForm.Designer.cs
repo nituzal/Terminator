@@ -51,9 +51,7 @@
             this.AnT.Size = new System.Drawing.Size(682, 576);
             this.AnT.StencilBits = ((byte)(0));
             this.AnT.TabIndex = 0;
-            this.AnT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.AnT_MouseDown);
             this.AnT.MouseMove += new System.Windows.Forms.MouseEventHandler(this.AnT_MouseMove);
-            this.AnT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.AnT_MouseUp);
             // 
             // RenderTimer
             // 

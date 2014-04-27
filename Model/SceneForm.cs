@@ -16,9 +16,11 @@ namespace Terminator
 {
     public partial class SceneForm : Form
     {
-        float[] _lightPos = { 0f, 23f, 70f, 1.0f };
+        float[] _lightPos = { 0f, 23f, 50f, 1.0f };
         float[] _planeNormal = { 0.0f, 1.0f, 0.0f, 0.0f };
-        private uint asd;
+        private uint texIdFace, texIdGround, texIdMaterial, texIdChest, texIdTorso, texIdPress;
+
+        double[] s_coeffs = { 1, 0, 0, 1 }, t_coeffs = { 0, 1, 0, 1 }, r_coeffs = { 1, 0, 1, 0 };
 
         public SceneForm()
         {
@@ -32,8 +34,10 @@ namespace Terminator
         bool Wire = false;
 
 
-        private float angleArm = 0, stepAngleArm = 1, angleForearmLeft, angleForearmRight, angleForearm2 = 0, step2 = 0.28f;
-        private bool isLeftArm = true;
+        private float angleArm = 0, stepAngleArm = 1, angleForearmLeft, angleForearmRight, move = -3, angleHead = 0, moveHeadZ = 0, moveHeadY = -0.33f, moveHeadX = 0.28f;
+        private float moveScapular = 0;
+        private double movePress = 0, scaleTerminatorY = 1, scaleTerminatorZ = 1, moveTerminatorY = 0.8, positionLightningX = 0, positionLightningY = 0, positionLightningZ = 0, lightningCount = 0;
+        private bool isLeftArm = true, isMove, isAtPlace, isTimeToPress, isLightning, isEyeDown;
 
 
         ModelLoader Model = null;
@@ -60,6 +64,7 @@ namespace Terminator
             Gl.glLoadIdentity();
 
             Gl.glEnable(Gl.GL_DEPTH_TEST);
+            Gl.glEnable(Gl.GL_NORMALIZE);
             Gl.glEnable(Gl.GL_LIGHTING);
             Gl.glEnable(Gl.GL_LIGHT0);
 
@@ -80,141 +85,178 @@ namespace Terminator
 
             Gl.glLightfv(Gl.GL_LIGHT0, Gl.GL_POSITION, _lightPos);
 
-            Gl.glBlendFunc(Gl.GL_SRC_ALPHA, Gl.GL_ONE_MINUS_SRC_ALPHA);
-            Gl.glEnable(Gl.GL_BLEND);
-            Gl.glEnable(Gl.GL_LINE_SMOOTH);
-            Gl.glLineWidth(1.0f);
-
             Gl.glEnable(Gl.GL_COLOR_MATERIAL);
 
-
-            //LoadModel(@"d:\Учёба\МГ\textures\tanks_carrier.ase");
-            //LoadModel(@"d:\sunf.ASE");
-
             var texture = new TexturesForObjects();
-            texture.LoadTextureForModel(@"d:\grass.jpg");
-            asd = texture.GetTextureObj();
+            texture.LoadTextureForModel(@"face.jpg");
+            texIdFace = texture.GetTextureObj();
+            texture.LoadTextureForModel(@"grass.jpg");
+            texIdGround = texture.GetTextureObj();
+            texture.LoadTextureForModel(@"material.jpg");
+            texIdMaterial = texture.GetTextureObj();
+            texture.LoadTextureForModel(@"chest.jpg");
+            texIdChest = texture.GetTextureObj();
+            texture.LoadTextureForModel(@"torso.jpg");
+            texIdTorso = texture.GetTextureObj();
+            texture.LoadTextureForModel(@"metal.jpg");
+            texIdPress = texture.GetTextureObj();
             RenderTimer.Start();
         }
 
-        private void LoadModel(string pathToModel)
-        {
-            Model = new ModelLoader();
-            Model.LoadModel(pathToModel);
-        }
-
-        void DrawCube(float width, float height, float thickness, float x, float y, float z)
-        {
-            // Передний полигон
-            Gl.glBegin(Gl.GL_QUADS);
-            Gl.glVertex3f(-0.2f, 0.0f, 0.0f);
-            Gl.glVertex3f(-0.2f, 0.5f, 0.0f);
-            Gl.glVertex3f(0.3f, 0.5f, 0.0f);
-            Gl.glVertex3f(0.3f, 0.0f, 0.0f);
-            Gl.glEnd();
-
-            // Задний полигон
-            Gl.glBegin(Gl.GL_QUADS);
-            Gl.glVertex3f(-0.2f, 0.0f, -0.5f);
-            Gl.glVertex3f(-0.2f, 0.5f, -0.5f);
-            Gl.glVertex3f(0.3f, 0.5f, -0.5f);
-            Gl.glVertex3f(0.3f, 0.0f, -0.5f);
-            Gl.glEnd();
-
-            // Левый полигон
-            Gl.glBegin(Gl.GL_QUADS);
-            Gl.glVertex3f(-0.2f, 0.0f, -0.5f);
-            Gl.glVertex3f(-0.2f, 0.5f, -0.5f);
-            Gl.glVertex3f(-0.2f, 0.5f, 0.0f);
-            Gl.glVertex3f(-0.2f, 0.0f, 0.0f);
-            Gl.glEnd();
-
-            // Правый полигон
-            Gl.glBegin(Gl.GL_QUADS);
-            Gl.glVertex3f(0.3f, 0.0f, -0.5f);
-            Gl.glVertex3f(0.3f, 0.5f, -0.5f);
-            Gl.glVertex3f(0.3f, 0.5f, 0.0f);
-            Gl.glVertex3f(0.3f, 0.0f, 0.0f);
-            Gl.glEnd();
-
-            // Верхний полигон
-            Gl.glBegin(Gl.GL_QUADS);
-            Gl.glVertex3f(-0.2f, 0.5f, 0.0f);
-            Gl.glVertex3f(-0.2f, 0.5f, -0.5f);
-            Gl.glVertex3f(0.3f, 0.5f, -0.5f);
-            Gl.glVertex3f(0.3f, 0.5f, 0.0f);
-            Gl.glEnd();
-
-            // Нижний полигон
-            Gl.glBegin(Gl.GL_QUADS);
-            Gl.glVertex3f(-0.2f, 0.0f, 0.0f);
-            Gl.glVertex3f(-0.2f, 0.0f, -0.5f);
-            Gl.glVertex3f(0.3f, 0.0f, -0.5f);
-            Gl.glVertex3f(0.3f, 0.0f, 0.0f);
-            Gl.glEnd();
-        }
-
-        public void DrawHead()
+        public void DrawHead(bool isShadow = false)
         {
             //head
-            Glut.glutWireSphere(0.5f, 10, 10);
+            Gl.glPushMatrix();
+            if (!isShadow)
+            {
+                Gl.glEnable(Gl.GL_TEXTURE_2D);
+                Gl.glEnable(Gl.GL_TEXTURE_GEN_S);
+                Gl.glEnable(Gl.GL_TEXTURE_GEN_T);
+            }
+            Gl.glTexGeni(Gl.GL_S, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_SPHERE_MAP);
+            Gl.glTexGendv(Gl.GL_S, Gl.GL_EYE_PLANE, s_coeffs);
+
+            Gl.glTexGeni(Gl.GL_T, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_SPHERE_MAP);
+            Gl.glTexGendv(Gl.GL_T, Gl.GL_EYE_PLANE, t_coeffs);
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, texIdMaterial);
+
+            Glut.glutSolidSphere(0.5f, 40, 10);
+
+            Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+            Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+            Gl.glDisable(Gl.GL_TEXTURE_2D);
+
+
+            Gl.glTranslatef(moveHeadX, moveHeadY, moveHeadZ);
+
+            Gl.glPushMatrix();
+            Gl.glRotatef(30, 0, 0, 1);
+            Gl.glRotatef(angleHead, 0, 1, 0);
+            Gl.glScaled(0.09, 0.1, 0.1);
+            if (!isShadow)
+                DrawCube(0, 0, 0, 7, 7, 7, texIdFace, texIdMaterial);
+            else DrawCube(0, 0, 0, 7, 7, 7, 0, 0);
+            Gl.glPopMatrix();
+
+            //Eyes
+
+            if (isEyeDown || isShadow)
+                Gl.glColor3d(0, 0, 0);
+            else
+                Gl.glColor3d(1, 0, 0);
+
+            Gl.glPushMatrix();
+            Gl.glTranslated(0.2, 0.31, 0.2);
+            Glut.glutSolidSphere(0.05f, 10, 10);
+            Gl.glPopMatrix();
+
+            Gl.glPushMatrix();
+            Gl.glTranslated(0.2, 0.31, -0.2);
+            Glut.glutSolidSphere(0.05f, 10, 10);
+            Gl.glPopMatrix();
+
+            Gl.glPopMatrix();
+
             Gl.glTranslatef(0.15f, -0.4f, 0);
-            Glut.glutWireCube(0.6);
 
             //neck
             Gl.glPushMatrix();
             Gl.glTranslatef(-0.35f, 0.1f, 0);
             Gl.glRotatef(90f, 1, 0, 0);
-            Glut.glutWireCylinder(0.2f, 0.7f, 12, 0);
+            if (!isShadow)
+            {
+                Gl.glEnable(Gl.GL_TEXTURE_2D);
+                Gl.glEnable(Gl.GL_TEXTURE_GEN_S);
+                Gl.glEnable(Gl.GL_TEXTURE_GEN_T);
+            }
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, texIdMaterial);
+            Gl.glTexGeni(Gl.GL_S, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+            Gl.glTexGendv(Gl.GL_S, Gl.GL_OBJECT_PLANE, new double[] { 0, 0, 1, 0 });
+            Gl.glTexGendv(Gl.GL_T, Gl.GL_OBJECT_PLANE, new double[] { 0, 0, 1, 0 });
+
+
+            Glut.glutSolidCylinder(0.2f, 0.8f, 12, 40);
             Gl.glPopMatrix();
 
+            Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+            Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+
+
             //body
+
+            Gl.glPushMatrix();
+            Gl.glTranslatef(-0.35f, -0.4f, 0.2f);
+            Gl.glRotatef(20f, 1, 0, 0);
+            if (!isShadow)
+            {
+                Gl.glEnable(Gl.GL_TEXTURE_GEN_S);
+                Gl.glEnable(Gl.GL_TEXTURE_GEN_T);
+            }
+            Glut.glutSolidCylinder(0.06f, 0.7f, 12, 10);
+
+            Gl.glPopMatrix();
+
+            Gl.glPushMatrix();
+            Gl.glTranslatef(-0.35f, -0.4f, -0.2f);
+            Gl.glRotatef(160f, 1, 0, 0);
+            Glut.glutSolidCylinder(0.06f, 0.7f, 12, 10);
+            Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+            Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+
+            Gl.glPopMatrix();
 
             //chest
             Gl.glTranslatef(-0.3f, -1f, 0);
             Gl.glPushMatrix();
-            Gl.glScaled(0.9, 0.7, 2);
-            Gl.glRotatef(-90f, 1, 0, 0);
-            Glut.glutWireCube(1.0);
+            Gl.glScaled(0.1, 0.1, 0.1);
+            if (!isShadow)
+                DrawCube(0, 0, 0, 9, 7, 20, texIdChest, texIdMaterial);
+            else DrawCube(0, 0, 0, 9, 7, 20, 0, 0);
             Gl.glPopMatrix();
 
             //Torso
             Gl.glPushMatrix();
             Gl.glTranslatef(0.47f, -0.3f, 1);
             Gl.glRotatef(90f, 0, 1, 0);
-            Gl.glScaled(2, 2.9, 1.56);
-            DrawWireTorso();
+            Gl.glScaled(0.2, 0.29, 0.156);
+            DrawSolidTorso(isShadow);
             Gl.glPopMatrix();
 
             //tail
             Gl.glPushMatrix();
+            if (!isShadow)
+            {
+                Gl.glEnable(Gl.GL_TEXTURE_2D);
+                Gl.glEnable(Gl.GL_TEXTURE_GEN_S);
+                Gl.glEnable(Gl.GL_TEXTURE_GEN_T);
+            }
             Gl.glTranslatef(-0.1f, -1f, 0f);
             Gl.glRotatef(90f, 1, 0, 0);
-            Glut.glutWireCylinder(0.2f, 1f, 10, 0);
+            Glut.glutSolidCylinder(0.2f, 1f, 10, 10);
             Gl.glPopMatrix();
 
             Gl.glPushMatrix();
             Gl.glTranslatef(0f, -2f, 0f);
             Gl.glRotatef(100f, 1, 0, 0);
-            Glut.glutWireCylinder(0.05f, 0.4f, 10, 0);
+            Glut.glutSolidCylinder(0.05f, 0.4f, 10, 10);
             Gl.glPopMatrix();
 
             Gl.glPushMatrix();
             Gl.glTranslatef(-0.1f, -2f, 0f);
             Gl.glRotatef(80f, 1, 0, 0);
-            Glut.glutWireCylinder(0.05f, 0.4f, 10, 0);
+            Glut.glutSolidCylinder(0.05f, 0.4f, 10, 10);
             Gl.glPopMatrix();
 
             Gl.glPushMatrix();
             Gl.glTranslatef(-0.1f, -2f, 0.1f);
             Gl.glRotatef(77f, 1, 0, 0);
-            Glut.glutWireCylinder(0.05f, 0.4f, 10, 0);
+            Glut.glutSolidCylinder(0.05f, 0.4f, 10, 10);
             Gl.glPopMatrix();
 
             //left shoulder
             Gl.glPushMatrix();
             Gl.glTranslatef(0f, 0f, -1.3f);
-            Glut.glutWireCylinder(0.15f, 0.3f, 25, 0);
+            Glut.glutSolidCylinder(0.15f, 0.3f, 25, 10);
             Gl.glPopMatrix();
 
             Gl.glPushMatrix();
@@ -225,13 +267,13 @@ namespace Terminator
             Gl.glTranslatef(0f, 0f, -1.15f);
             Gl.glRotatef(-30, 0, 1, 0);
             Gl.glPushMatrix();
-            Gl.glRotatef(-160f + angleForearmLeft , 1, 0, 0);
-            Glut.glutWireCylinder(0.15f, 1.3f, 10, 0);
+            Gl.glRotatef(-160f + angleForearmLeft, 1, 0, 0);
+            Glut.glutSolidCylinder(0.15f, 1.3f, 10, 10);
             Gl.glPopMatrix();
             Gl.glPopMatrix();
 
             var deX = 1.3 * Math.Sin(ConvertToRadians(30)) * Math.Cos(ConvertToRadians(20 + angleForearmLeft));
-            var deY = 1.3*Math.Sin(ConvertToRadians(20 + angleForearmLeft)) + 0.1f;
+            var deY = 1.3 * Math.Sin(ConvertToRadians(20 + angleForearmLeft)) + 0.1f;
             var deZ = 1.3 * Math.Cos(ConvertToRadians(30)) * Math.Cos(ConvertToRadians(20 + angleForearmLeft));
 
             Gl.glTranslatef((float)deX, (float)deY, -1.15f - (float)deZ);
@@ -239,7 +281,7 @@ namespace Terminator
             //left elbow
             Gl.glPushMatrix();
             Gl.glTranslatef(0f, -0.1f, -0.1f);
-            Glut.glutWireCylinder(0.15f, 0.3f, 10, 0);
+            Glut.glutSolidCylinder(0.15f, 0.3f, 10, 10);
             Gl.glPopMatrix();
 
             Gl.glTranslatef(0f, -0.15f, 0f);
@@ -249,8 +291,14 @@ namespace Terminator
             //Gl.glTranslatef(0f, -1.3f, -1.15f);
             Gl.glRotatef(-20f, 1, 0, 0);
             Gl.glRotatef(10f, 0, 1, 0);
-            Glut.glutWireCylinder(0.15f, 1.3f, 10, 0);
+            Glut.glutSolidCylinder(0.15f, 1.3f, 10, 10);
             Gl.glPopMatrix();
+
+            if (!isShadow)
+            {
+                Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+                Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+            }
 
             Gl.glTranslatef(0.3f, 0.4f, 1.35f);
 
@@ -273,10 +321,17 @@ namespace Terminator
 
             Gl.glPopMatrix();
 
+            if (!isShadow)
+            {
+                Gl.glEnable(Gl.GL_TEXTURE_2D);
+                Gl.glEnable(Gl.GL_TEXTURE_GEN_S);
+                Gl.glEnable(Gl.GL_TEXTURE_GEN_T);
+            }
+
             //right shoulder
             Gl.glPushMatrix();
             Gl.glTranslatef(0f, 0f, 1f);
-            Glut.glutWireCylinder(0.15f, 0.3f, 25, 0);
+            Glut.glutSolidCylinder(0.15f, 0.3f, 25, 10);
             Gl.glPopMatrix();
 
             Gl.glPushMatrix();
@@ -287,7 +342,7 @@ namespace Terminator
             Gl.glRotatef(30, 0, 1, 0);
             Gl.glPushMatrix();
             Gl.glRotatef(-20f - angleForearmRight, 1, 0, 0);
-            Glut.glutWireCylinder(0.15f, 1.3f, 10, 0);
+            Glut.glutSolidCylinder(0.15f, 1.3f, 10, 10);
             Gl.glPopMatrix();
             Gl.glPopMatrix();
 
@@ -300,24 +355,48 @@ namespace Terminator
             //right elbow
             Gl.glPushMatrix();
             Gl.glTranslatef(0f, -0.1f, -0.1f);
-            Glut.glutWireCylinder(0.15f, 0.3f, 10, 0);
+            Glut.glutSolidCylinder(0.15f, 0.3f, 10, 10);
             Gl.glPopMatrix();
 
             Gl.glTranslatef(0f, -0.15f, 0.1f);
 
             //right arm
             Gl.glPushMatrix();
-            Gl.glRotatef(20f, 1, 0, 0);
+            Gl.glRotatef(20f + angleArm, 1, 0, 0);
             Gl.glRotatef(170f, 0, 1, 0);
-            Glut.glutWireCylinder(0.15f, 1.3f, 10, 0);
+            Glut.glutSolidCylinder(0.15f, 1.3f, 10, 10);
             Gl.glPopMatrix();
 
-            Gl.glTranslatef(0.3f, 0.4f, -1.3f);
+            if (!isShadow)
+            {
+                Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+                Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+                //Gl.glDisable(Gl.GL_TEXTURE_2D);
+            }
+
+            if (isAtPlace)
+            {
+                deXright = 1.3 * Math.Cos(ConvertToRadians(10)) * Math.Sin(ConvertToRadians(20 + angleArm));
+                deYright = 1.3 * Math.Sin(ConvertToRadians(20 + angleForearmRight)) + 0.1f;
+                deZright = 1.3 * Math.Cos(ConvertToRadians(10)) * Math.Cos(ConvertToRadians(20 + angleArm)) - 0.1;
+                Gl.glTranslatef(0.4f, (float)deXright, (float)-deZright);
+            }
+            else Gl.glTranslatef(0.3f, 0.4f, -1.3f);
             //right fingers
             Gl.glPushMatrix();
-            Gl.glRotatef(-78f, 1, 0, 0);
-            Gl.glRotatef(0f, 0, 1, 0);
-            Gl.glRotatef(-40f, 0, 0, 1);
+
+
+            if (isAtPlace)
+            {
+                Gl.glTranslatef(-0.2f, 0.1f, 0f);
+                Gl.glRotatef(-178f, 1, 0, 0);
+            }
+            else
+            {
+                Gl.glRotatef(-78f, 1, 0, 0);
+                Gl.glRotatef(0f, 0, 1, 0);
+                Gl.glRotatef(-40f, 0, 0, 1);
+            }
             Gl.glScaled(0.04, 0.5, 0.04);
             Glut.glutWireCube(1.0);
             Gl.glTranslatef(0f, 0f, 1.12f);
@@ -333,40 +412,147 @@ namespace Terminator
             Gl.glPopMatrix();
         }
 
-        private void DrawSolidTorso()
+        void DrawCube(float x, float y, float z, float width, float height, float length, uint texIdFront, uint texIdOther)
         {
+            x = x - width / 2;
+            y = y - height / 2;
+            z = z - length / 2;
+
+            if (texIdFront != 0)
+            {
+                Gl.glEnable(Gl.GL_TEXTURE_2D);
+                Gl.glBindTexture(Gl.GL_TEXTURE_2D, texIdOther);
+            }
+
+            // забиндим заднюю текстуру на заднюю сторону
             Gl.glBegin(Gl.GL_QUADS);
-            Gl.glVertex3f(0, 0, 0);
-            Gl.glVertex3f(1, 0, 0);
-            Gl.glVertex3f(0.8f, -0.4f, -0.2f);
-            Gl.glVertex3f(0.2f, -0.4f, -0.2f);
 
-            Gl.glVertex3f(0, 0, 0);
-            Gl.glVertex3f(0, 0, -0.6f);
-            Gl.glVertex3f(1f, 0, -0.6f);
-            Gl.glVertex3f(1, 0, 0);
-
-            Gl.glVertex3f(0, 0, -0.6f);
-            Gl.glVertex3f(1, 0, -0.6f);
-            Gl.glVertex3f(0.8f, -0.4f, -0.5f);
-            Gl.glVertex3f(0.2f, -0.4f, -0.5f);
-
-            Gl.glVertex3f(0.2f, -0.4f, -0.5f);
-            Gl.glVertex3f(0.8f, -0.4f, -0.5f);
-            Gl.glVertex3f(0.8f, -0.4f, -0.2f);
-            Gl.glVertex3f(0.2f, -0.4f, -0.2f);
-
-            Gl.glVertex3f(0, 0, 0);
-            Gl.glVertex3f(0, 0, -0.6f);
-            Gl.glVertex3f(0.2f, -0.4f, -0.5f);
-            Gl.glVertex3f(0.2f, -0.4f, -0.2f);
-
-            Gl.glVertex3f(1, 0, 0);
-            Gl.glVertex3f(1, 0, -0.6f);
-            Gl.glVertex3f(0.8f, -0.4f, -0.5f);
-            Gl.glVertex3f(0.8f, -0.4f, -0.2f);
+            // Установим текстурные координаты и вершины ЗАДНЕЙ стороны
+            Gl.glTexCoord2f(1.0f, 0.0f); Gl.glVertex3f(x + width, y, z);
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(x + width, y + height, z);
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(x, y + height, z);
+            Gl.glTexCoord2f(0.0f, 0.0f); Gl.glVertex3f(x, y, z);
 
             Gl.glEnd();
+
+            // Начинаем рисовать сторону
+            Gl.glBegin(Gl.GL_QUADS);
+
+            // Установим текстурные координаты и вершины ПЕРЕДНЕЙ стороны
+            Gl.glTexCoord2f(1.0f, 0.0f); Gl.glVertex3f(x, y, z + length);
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(x, y + height, z + length);
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(x + width, y + height, z + length);
+            Gl.glTexCoord2f(0.0f, 0.0f); Gl.glVertex3f(x + width, y, z + length);
+            Gl.glEnd();
+
+
+            // Биндим НИЖНЮЮ текстуру на НИЖНЮЮ сторону бокса
+
+            // Начинаем рисовать сторону
+            Gl.glBegin(Gl.GL_QUADS);
+
+            // Установим текстурные координаты и вершины НИЖНЕЙ стороны
+            Gl.glTexCoord2f(1.0f, 0.0f); Gl.glVertex3f(x, y, z);
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(x, y, z + length);
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(x + width, y, z + length);
+            Gl.glTexCoord2f(0.0f, 0.0f); Gl.glVertex3f(x + width, y, z);
+            Gl.glEnd();
+
+            // Биндим ВЕРХНЮЮ текстуру на ВЕРХНЮЮ сторону бокса
+
+            // Начинаем рисовать сторону
+            Gl.glBegin(Gl.GL_QUADS);
+
+            // Установим текстурные координаты и вершины ВЕРХНЕЙ стороны
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(x + width, y + height, z);
+            Gl.glTexCoord2f(0.0f, 0.0f); Gl.glVertex3f(x + width, y + height, z + length);
+            Gl.glTexCoord2f(1.0f, 0.0f); Gl.glVertex3f(x, y + height, z + length);
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(x, y + height, z);
+
+            Gl.glEnd();
+
+            // Биндим ЛЕВУЮ текстуру на ЛЕВУЮ сторону бокса
+
+            // Начинаем рисовать сторону
+            Gl.glBegin(Gl.GL_QUADS);
+
+            // Установим текстурные координаты и вершины ЛЕВОЙ стороны
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(x, y + height, z);
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(x, y + height, z + length);
+            Gl.glTexCoord2f(0.0f, 0.0f); Gl.glVertex3f(x, y, z + length);
+            Gl.glTexCoord2f(1.0f, 0.0f); Gl.glVertex3f(x, y, z);
+
+            Gl.glEnd();
+
+            // Биндим ПРАВУЮ текстуру на ПРАВУЮ сторону бокса
+
+            //Gl.glEnable(Gl.GL_TEXTURE_2D);
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, texIdFront);
+            // Начинаем рисовать сторону
+            Gl.glBegin(Gl.GL_QUADS);
+
+            // Установим текстурные координаты и вершины ПРАВОЙ стороны
+            Gl.glTexCoord2f(0.0f, 0.0f); Gl.glVertex3f(x + width, y, z);
+            Gl.glTexCoord2f(1.0f, 0.0f); Gl.glVertex3f(x + width, y, z + length);
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(x + width, y + height, z + length);
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(x + width, y + height, z);
+            Gl.glEnd();
+            Gl.glDisable(Gl.GL_TEXTURE_2D);
+        }
+
+        private void DrawSolidTorso(bool isShadow)
+        {
+            if (!isShadow)
+            {
+                Gl.glEnable(Gl.GL_TEXTURE_2D);
+                Gl.glBindTexture(Gl.GL_TEXTURE_2D, texIdMaterial);
+            }
+
+            Gl.glBegin(Gl.GL_QUADS);
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(0, 0, 0);
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(0, 0, -6f);
+            Gl.glTexCoord2f(1.0f, 0.0f); Gl.glVertex3f(10f, 0, -6f);
+            Gl.glTexCoord2f(0.0f, 0.0f); Gl.glVertex3f(10, 0, 0);
+            Gl.glEnd();
+
+            Gl.glBegin(Gl.GL_QUADS);
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(0, 0, -6f);
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(10, 0, -6f);
+            Gl.glTexCoord2f(1.0f, 0.0f); Gl.glVertex3f(8f, -4f, -5f);
+            Gl.glTexCoord2f(0.0f, 0.0f); Gl.glVertex3f(2f, -4f, -5f);
+            Gl.glEnd();
+
+            Gl.glBegin(Gl.GL_QUADS);
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(2f, -4f, -5f);
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(8f, -4f, -5f);
+            Gl.glTexCoord2f(1.0f, 0.0f); Gl.glVertex3f(8f, -4f, -2f);
+            Gl.glTexCoord2f(0.0f, 0.0f); Gl.glVertex3f(2f, -4f, -2f);
+            Gl.glEnd();
+
+            Gl.glBegin(Gl.GL_QUADS);
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(0, 0, 0);
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(0, 0, -6f);
+            Gl.glTexCoord2f(1.0f, 0.0f); Gl.glVertex3f(2f, -4f, -5f);
+            Gl.glTexCoord2f(0.0f, 0.0f); Gl.glVertex3f(2f, -4f, -2f);
+            Gl.glEnd();
+
+            Gl.glBegin(Gl.GL_QUADS);
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(10, 0, 0);
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(10, 0, -6f);
+            Gl.glTexCoord2f(1.0f, 0.0f); Gl.glVertex3f(8f, -4f, -5f);
+            Gl.glTexCoord2f(0.0f, 0.0f); Gl.glVertex3f(8f, -4f, -2f);
+            Gl.glEnd();
+
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, texIdTorso);
+            Gl.glBegin(Gl.GL_QUADS);
+            Gl.glTexCoord2f(0.0f, 1.0f); Gl.glVertex3f(0, 0, 0);
+            Gl.glTexCoord2f(1.0f, 1.0f); Gl.glVertex3f(10, 0, 0);
+            Gl.glTexCoord2f(1f, 0.0f); Gl.glVertex3f(8f, -4f, -2f);
+            Gl.glTexCoord2f(0f, 0.0f); Gl.glVertex3f(2f, -4f, -2f);
+            Gl.glEnd();
+
+            if (!isShadow)
+                Gl.glDisable(Gl.GL_TEXTURE_2D);
         }
 
         private void DrawWireTorso()
@@ -430,6 +616,88 @@ namespace Terminator
             Gl.glEnd();
         }
 
+        private void DrawBarrier()
+        {
+            Gl.glPushMatrix();
+            Gl.glTranslated(7.5, 4, -4.55);
+            Gl.glRotated(90, 1, 0, 0);
+            for (var i = 0; i < 15; i++)
+            {
+                Gl.glTranslated(0, 0.55, 0);
+                Glut.glutSolidCylinder(0.1, 4, 10, 2);
+            }
+            Gl.glPopMatrix();
+        }
+
+        private void DrawPress(bool isSwadow = false)
+        {
+            Gl.glPushMatrix();
+            if (!isSwadow)
+                Gl.glEnable(Gl.GL_TEXTURE_2D);
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, texIdPress);
+            Gl.glTranslated(0, 2.7 - movePress, 0);
+            DrawCube(0, 0, 0, 15, 0.3f, 7.5f,isSwadow ? 0 : texIdPress, texIdPress);
+            Gl.glDisable(Gl.GL_TEXTURE_2D);
+            Gl.glPopMatrix();
+
+            Gl.glPushMatrix();
+            Gl.glTranslated(2, 5.7, 2);
+            Gl.glRotated(90, 1, 0, 0);
+            Glut.glutSolidCylinder(0.2, 1.7, 20, 2);
+            Gl.glPopMatrix();
+            Gl.glPushMatrix();
+            Gl.glTranslated(2, 5.7 - movePress, 2);
+            Gl.glRotated(90, 1, 0, 0);
+            Glut.glutSolidCylinder(0.12, 3, 20, 2);
+            Gl.glPopMatrix();
+
+            Gl.glPushMatrix();
+            Gl.glTranslated(2, 5.7, -2);
+            Gl.glRotated(90, 1, 0, 0);
+            Glut.glutSolidCylinder(0.2, 1.7, 20, 2);
+            Gl.glPopMatrix();
+            Gl.glPushMatrix();
+            Gl.glTranslated(2, 5.7 - movePress, -2);
+            Gl.glRotated(90, 1, 0, 0);
+            Glut.glutSolidCylinder(0.12, 3, 20, 2);
+            Gl.glPopMatrix();
+
+            Gl.glPushMatrix();
+            Gl.glTranslated(-2, 5.7, -2);
+            Gl.glRotated(90, 1, 0, 0);
+            Glut.glutSolidCylinder(0.2, 1.7, 20, 2);
+            Gl.glPopMatrix();
+            Gl.glPushMatrix();
+            Gl.glTranslated(-2, 5.7 - movePress, -2);
+            Gl.glRotated(90, 1, 0, 0);
+            Glut.glutSolidCylinder(0.12, 3, 20, 2);
+            Gl.glPopMatrix();
+
+            Gl.glPushMatrix();
+            Gl.glTranslated(-2, 5.7, 2);
+            Gl.glRotated(90, 1, 0, 0);
+            Glut.glutSolidCylinder(0.2, 1.7, 20, 2);
+            Gl.glPopMatrix();
+            Gl.glPushMatrix();
+            Gl.glTranslated(-2, 5.7 - movePress, 2);
+            Gl.glRotated(90, 1, 0, 0);
+            Glut.glutSolidCylinder(0.12, 3, 20, 2);
+            Gl.glPopMatrix();
+        }
+
+        private void DrawGround()
+        {
+            Gl.glEnable(Gl.GL_TEXTURE_2D);
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, texIdPress);
+            Gl.glBegin(Gl.GL_QUADS);
+            Gl.glTexCoord2d(0.0, 0.0); Gl.glVertex3f(15.0f, 0f, 15.0f);
+            Gl.glTexCoord2d(1.0, 0.0); Gl.glVertex3f(-15.0f, 0f, 15.0f);
+            Gl.glTexCoord2d(1.0, 1.0); Gl.glVertex3f(-15.0f, 0f, -15.0f);
+            Gl.glTexCoord2d(0.0, 1.0); Gl.glVertex3f(15.0f, 0f, -15.0f);
+            Gl.glEnd();
+            Gl.glDisable(Gl.GL_TEXTURE_2D);
+        }
+
         private void Draw()
         {
             Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
@@ -438,21 +706,12 @@ namespace Terminator
             Gl.glColor3i(255, 0, 0);
 
             Gl.glTranslated(a, b, c);
+
             Gl.glRotated(angleX, 0, 1, 0);
             Gl.glRotated(angleY, 1, 0, 0);
             Gl.glScaled(zoom, zoom, zoom);
-            Gl.glEnable(Gl.GL_TEXTURE_2D);
-            Gl.glBindTexture(Gl.GL_TEXTURE_2D, asd);
-            Gl.glBegin(Gl.GL_QUADS);
-            Gl.glTexCoord2d(0.0, 0.0); Gl.glVertex3f(15.0f, -0.01f, 15.0f);
-            Gl.glTexCoord2d(1.0, 0.0); Gl.glVertex3f(-15.0f, -0.01f, 15.0f);
-            Gl.glTexCoord2d(1.0, 1.0); Gl.glVertex3f(-15.0f, -0.01f, -15.0f);
-            Gl.glTexCoord2d(0.0, 1.0); Gl.glVertex3f(15.0f, -0.01f, -15.0f);
-            Gl.glEnd();
-            Gl.glDisable(Gl.GL_TEXTURE_2D);
 
-            //if (Model != null)
-            //    Model.DrawModel();
+            DrawGround();
 
             var shadowMatrix = CreateShadowMatrix(_planeNormal, _lightPos);
 
@@ -461,106 +720,152 @@ namespace Terminator
             Gl.glPushMatrix();
             Gl.glMultMatrixf(shadowMatrix);
             Gl.glColor3f(0, 0, 0);
-            Gl.glTranslated(0, 2, 0);
-            //Gl.glRotated(-70, 0, 0, 1);
-            DrawHead();
+            DrawBarrier();
+            DrawPress(true);
+            Gl.glTranslated(move, moveTerminatorY, 0);
+            Gl.glScaled(1, scaleTerminatorY, scaleTerminatorZ);
+            Gl.glRotated(-80, 0, 0, 1);
+            DrawHead(true);
             Gl.glPopMatrix();
 
-            Gl.glColor3f(255f, 0f, 0f);
-            Gl.glTranslated(0, 2, 0);
-            //Gl.glRotated(-70, 0, 0, 1);
+            Gl.glEnable(Gl.GL_DEPTH_TEST);
+
+            Gl.glColor3f(0.5f, 0.5f, 0.5f);
+            DrawBarrier();
+            DrawPress();
+            if (isLightning)
+                DrawLightning();
+
+            Gl.glTranslated(move, moveTerminatorY, 0);
+            Gl.glScaled(1, scaleTerminatorY, scaleTerminatorZ);
+            Gl.glRotated(-80, 0, 0, 1);
             DrawHead();
+            Gl.glPopMatrix();
 
             Gl.glFlush();
 
             AnT.Invalidate();
         }
 
-        void DrawGround()
+        private void DrawLightning()
         {
-            float fExtent = 20f, fStep = 1f, y = -0.0f;
-            float iLine;
+            Gl.glPushMatrix();
+            Gl.glLineWidth(4);
+            Gl.glColor3d(0, 0, 255);
+            Gl.glBegin(Gl.GL_LINES);
 
-            //Gl.glBegin(Gl.GL_LINES);
-            //for (iLine = -fExtent; iLine < fExtent; iLine += fStep)
-            //{
-            //    Gl.glVertex3f(iLine, fExtent, y);
-            //    Gl.glVertex3f(iLine, -fExtent, y);
-            //    Gl.glVertex3f(fExtent, iLine, y);
-            //    Gl.glVertex3f(-fExtent, iLine, y);
-            //}
-            //Gl.glEnd();
+            Gl.glVertex3d(3.5, 1f, 0.0f);
+            Gl.glVertex3d(4.5, positionLightningY + 1, 0.2);
+            Gl.glVertex3d(4.5, positionLightningY + 1, 0.2);
+            Gl.glVertex3d(5.3, positionLightningY + 0.45, 0.4);
+            Gl.glVertex3d(5.3, positionLightningY + 0.45, 0.4);
+            Gl.glVertex3d(5.9, positionLightningY + 0.75, 0.4);
 
-            Gl.glColor3i(255, 255, 0);
-
-            Gl.glBegin(Gl.GL_QUADS);
-            Gl.glVertex3f(fExtent, fExtent, y);
-            Gl.glVertex3f(-fExtent, fExtent, y);
-            Gl.glVertex3f(-fExtent, -fExtent, y);
-            Gl.glVertex3f(fExtent, -fExtent, y);
             Gl.glEnd();
+
+            Gl.glPopMatrix();
         }
 
         private void RenderTimer_Tick(object sender, EventArgs e)
         {
             Draw();
 
-            if (angleForearmLeft > 30 || angleForearmRight> 30)
-                stepAngleArm = -stepAngleArm;
-
-            if (angleForearmRight < 0 && !isLeftArm)
+            if (!isAtPlace)
             {
-                stepAngleArm = -stepAngleArm;
-                angleForearmLeft = 0;
-                isLeftArm = true;
+                if (angleForearmLeft > 30 || angleForearmRight > 30)
+                {
+                    isMove = true;
+                    stepAngleArm = -stepAngleArm;
+                }
+
+                if (angleForearmRight < 0 && !isLeftArm)
+                {
+                    stepAngleArm = -stepAngleArm;
+                    angleForearmLeft = 0;
+                    isLeftArm = true;
+                    isMove = false;
+                }
+
+                if (angleForearmLeft < 0 && isLeftArm)
+                {
+                    stepAngleArm = -stepAngleArm;
+                    angleForearmRight = 0;
+                    isLeftArm = false;
+                    isMove = false;
+                }
+                if (isLeftArm)
+                    angleForearmLeft += stepAngleArm;
+                else angleForearmRight += stepAngleArm;
+
+                if (isMove)
+                    move += 0.05f;
+
+                if (move > 6.6)
+                    isAtPlace = true;
+            }
+            else
+            {
+                if (angleForearmRight < 70)
+                    angleForearmRight -= stepAngleArm;
+
+                if (angleArm < 70)
+                    angleArm -= stepAngleArm;
+
+                isTimeToPress = angleForearmRight == 70;
+
+                if (isTimeToPress && movePress < 1.6)
+                    movePress += 0.03;
             }
 
-            if (angleForearmLeft < 0 && isLeftArm)
+            if (movePress > 1 && movePress < 1.6)
             {
-                stepAngleArm = -stepAngleArm;
-                angleForearmRight = 0;
-                isLeftArm = false;
-            }
-            if (isLeftArm)
-                angleForearmLeft += stepAngleArm;
-            else angleForearmRight += stepAngleArm;
+                isLightning = true;
 
-            label11.Text = angleForearmLeft.ToString();
+                if (movePress <= 1.2)
+                    positionLightningY = 0.3;
+
+                else if (movePress <= 1.4)
+                    positionLightningY = 0.1;
+
+                else positionLightningY = -0.4;
+
+
+                if (angleHead < 90)
+                {
+                    angleHead += 1.4f;
+                    moveHeadZ -= 0.004f;
+                    moveHeadY += 0.0045f;
+                    moveHeadX -= 0.00045f;
+                }
+                scaleTerminatorY -= 0.02;
+                scaleTerminatorZ += 0.01;
+                moveTerminatorY -= 0.01;
+            }
+            else isLightning = false;
+
+            isEyeDown = movePress >= 1.6;
+
+            label10.Text = "Angle=" + angleForearmRight;
+            label11.Text = "Move = " + movePress;
         }
 
         private void AnT_MouseWheel(object sender, MouseEventArgs e)
         {
-            //label12.Text = zoom.ToString();
             if (e.Delta < 0 && zoom > 0)
                 zoom -= 0.02f;
             else zoom += 0.02f;
-            //Draw();
         }
 
         private void AnT_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                label10.Text = "mousemove";
-                angleX = e.X;// - prev_x;
-                angleY = e.Y;// - prev_y;
+                angleX = e.X;
+                angleY = e.Y;
             }
         }
 
         private double prev_x = 0, prev_y = 0, angleX, angleY;
-
-        private void AnT_MouseDown(object sender, MouseEventArgs e)
-        {
-            prev_x = e.X;
-            prev_y = e.Y;
-            //label11.Text = "X = " + prev_x + " Y = " + prev_y;
-        }
-
-        private void AnT_MouseUp(object sender, MouseEventArgs e)
-        {
-
-            // label11.Text = "X = " + prev_x + " Y = " + prev_y;
-        }
 
         private float[] CreateShadowMatrix(float[] planeNormal, float[] lightPos)
         {
